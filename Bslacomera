@@ -1,0 +1,139 @@
+--[[
+	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
+]]
+-- Roblox Executor GUI Script
+
+-- Services
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local StarterGui = game:GetService("StarterGui")
+
+-- Function to send notifications
+local function notify(title, text)
+    StarterGui:SetCore("SendNotification", {
+        Title = title,
+        Text = text,
+        Duration = 3
+    })
+end
+
+-- Function to copy text to clipboard
+local function copyToClipboard(text)
+    setclipboard(text)
+    notify("Copied!", "Text copied to clipboard.")
+end
+
+-- Character map for text modification
+local charMap = {
+    a = "a", b = "ß", c = "¢", d = "ɖ", e = "ɇ", f = "ϝ", g = "ᵍ", h = "h",
+    i = "ï", j = "j", k = "k", l = "l", m = "m", o = "ð", p = "p", q = "ᕴ",
+    r = "r", s = "$", t = "†", u = "µ", v = "ᐺ", w = "ш", x = "x", y = "¥", z = "z"
+}
+
+-- Function to modify text
+local function modifyText(text)
+    local modified = ""
+    for i = 1, #text do
+        local char = text:sub(i, i):lower()
+        modified = modified .. (charMap[char] or char)
+    end
+    return modified
+end
+
+-- GUI Creation
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = Player.PlayerGui
+
+-- First Window
+local Frame1 = Instance.new("Frame")
+Frame1.Size = UDim2.new(0, 400, 0, 200)
+Frame1.Position = UDim2.new(0.5, -200, 0.5, -100)
+Frame1.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Frame1.Active = true
+Frame1.Draggable = true
+Frame1.Parent = ScreenGui
+
+local Label1 = Instance.new("TextLabel")
+Label1.Size = UDim2.new(1, -20, 0, 140)
+Label1.Position = UDim2.new(0, 10, 0, 10)
+Label1.Text = "Use at your own risk!!, should not cause a ban   -Void Team"
+Label1.TextColor3 = Color3.fromRGB(255, 255, 255)
+Label1.TextWrapped = true
+Label1.TextSize = 14
+Label1.BackgroundTransparency = 1
+Label1.Parent = Frame1
+
+local ContinueButton = Instance.new("TextButton")
+ContinueButton.Size = UDim2.new(0, 100, 0, 30)
+ContinueButton.Position = UDim2.new(0.5, -50, 1, -40)
+ContinueButton.Text = "Continue"
+ContinueButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+ContinueButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ContinueButton.Parent = Frame1
+
+-- Second Window (hidden initially)
+local Frame2 = Instance.new("Frame")
+Frame2.Size = UDim2.new(0, 550, 0, 160)
+Frame2.Position = UDim2.new(0.5, -300, 0.5, -200)
+Frame2.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+Frame2.Active = true
+Frame2.Draggable = true
+Frame2.Visible = false
+Frame2.Parent = ScreenGui
+
+-- Text modification section
+local ModifyLabel = Instance.new("TextLabel")
+ModifyLabel.Position = UDim2.new(0, 10, 0, 10)
+ModifyLabel.Size = UDim2.new(0, 200, 0, 30)
+ModifyLabel.Text = "BpChat| Modify text to bypassed"
+ModifyLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+ModifyLabel.BackgroundTransparency = 1
+ModifyLabel.Parent = Frame2
+
+local InputBox = Instance.new("TextBox")
+InputBox.Position = UDim2.new(0, 10, 0, 40)
+InputBox.Size = UDim2.new(0, 250, 0, 30)
+InputBox.PlaceholderText = "Enter text here"
+InputBox.Text = ""
+InputBox.Parent = Frame2
+
+local ModifyButton = Instance.new("TextButton")
+ModifyButton.Position = UDim2.new(0, 10, 0, 80)
+ModifyButton.Size = UDim2.new(0, 100, 0, 30)
+ModifyButton.Text = "Modify Text"
+ModifyButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ModifyButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+ModifyButton.Parent = Frame2
+
+local OutputBox = Instance.new("TextBox")
+OutputBox.Position = UDim2.new(0, 270, 0, 40)
+OutputBox.Size = UDim2.new(0, 250, 0, 30)
+OutputBox.Text = ""
+OutputBox.ClearTextOnFocus = false
+OutputBox.Parent = Frame2
+
+local CopyButton = Instance.new("TextButton")
+CopyButton.Position = UDim2.new(0, 270, 0, 80)
+CopyButton.Size = UDim2.new(0, 100, 0, 30)
+CopyButton.Text = "Copy"
+CopyButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+CopyButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+CopyButton.Parent = Frame2
+
+-- Button Actions
+ContinueButton.MouseButton1Click:Connect(function()
+    Frame1.Visible = false
+    Frame2.Visible = true
+end)
+
+ModifyButton.MouseButton1Click:Connect(function()
+    local inputText = InputBox.Text
+    local modifiedText = modifyText(inputText)
+    OutputBox.Text = modifiedText
+end)
+
+CopyButton.MouseButton1Click:Connect(function()
+    copyToClipboard(OutputBox.Text)
+end)
+
+notify("XE3 Bypasser V2", "Ejnoy fucking leftist chat filter :)")
