@@ -128,7 +128,7 @@ function Lib:Init(Settings)
 			end
 		end
 	end
-	Settings["Description"]=Settings["Decription"] or "Click \"Get Key\" button to get your key!"
+	Settings["Description"]=Settings["Decription"] or "Click Discord button to get the key!"
 
 	-- Key system variable
 	local _5432Key543Entered7654 = false
