@@ -1,4 +1,4 @@
--- Nova Hub GUI Library v2
+-- Nova Hub GUI Library v3
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
@@ -98,14 +98,28 @@ CloseButton.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
--- ================= Vertical Tabs =================
-library.Tabs = {}
+-- ================= Tab Background =================
+local TabBackground = Instance.new("Frame")
+TabBackground.Name = "TabBackground"
+TabBackground.Size = UDim2.new(0, 120, 1, -60)  
+TabBackground.Position = UDim2.new(0, 10, 0, 50 + 5)  
+TabBackground.BackgroundColor3 = Color3.fromRGB(45, 45, 45)  
+TabBackground.BorderSizePixel = 0
+TabBackground.Parent = MainFrame
+
+local UICornerTabBg = Instance.new("UICorner")
+UICornerTabBg.CornerRadius = UDim.new(0, 12)
+UICornerTabBg.Parent = TabBackground
+
+-- ================= Tabs Container =================
 local TabsContainer = Instance.new("Frame")
-TabsContainer.Size = UDim2.new(0, 120, 1, -50)
-TabsContainer.Position = UDim2.new(0, 0, 0, 50)
+TabsContainer.Name = "TabsContainer"
+TabsContainer.Size = UDim2.new(0, 120, 1, -60)
+TabsContainer.Position = UDim2.new(0, 10, 0, 50 + 5)
 TabsContainer.BackgroundTransparency = 1
 TabsContainer.Parent = MainFrame
 
+library.Tabs = {}
 local tabNames = {}
 local tabButtons = {}
 local ContentFrames = {}
@@ -118,8 +132,8 @@ function library:CreateTab(tabName)
     local btn = Instance.new("TextButton")
     btn.Text = tabName
     btn.Size = UDim2.new(0, 100, 0, 35)
-    btn.Position = UDim2.new(0, 10, 0, 10 + (index-1)*(35+10))
-    btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    btn.Position = UDim2.new(0, 10, 0, 10 + (index-1)*(35+8))
+    btn.BackgroundColor3 = Color3.fromRGB(60,60,60)
     btn.TextColor3 = Color3.fromRGB(255,255,255)
     btn.Font = Enum.Font.FredokaOne
     btn.TextScaled = true
@@ -133,8 +147,8 @@ function library:CreateTab(tabName)
 
     -- Content Frame
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, -120, 1, -50)
-    frame.Position = UDim2.new(0, 120, 0, 50)
+    frame.Size = UDim2.new(1, -140, 1, -60)
+    frame.Position = UDim2.new(0, 130, 0, 50 + 5)
     frame.BackgroundColor3 = Color3.fromRGB(38,38,38)
     frame.Visible = false
     frame.Parent = MainFrame
@@ -215,8 +229,6 @@ end
 
 -- ================= Drag con effetto smooth =================
 local velocity = Vector2.new(0,0)
-local lastPos = MainFrame.Position
-
 local dragging = false
 local dragInput
 local dragStart
@@ -255,12 +267,11 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- Smooth inertia
 RunService.RenderStepped:Connect(function(delta)
     if not dragging then
         local pos = MainFrame.Position.Position + velocity * delta
         MainFrame.Position = UDim2.new(MainFrame.Position.X.Scale, pos.X, MainFrame.Position.Y.Scale, pos.Y)
-        velocity = velocity * (0.85) -- damping
+        velocity = velocity * 0.85
     end
 end)
 
