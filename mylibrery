@@ -1,4 +1,4 @@
--- Nova Hub GUI Library v4
+-- Nova Hub GUI Library v3
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
@@ -98,41 +98,41 @@ CloseButton.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
--- ================= Retro / Tab Background =================
-local tabWidth = 100
-local tabHeight = 35
-local tabSpacing = 10
-local tabPadding = 10
-
+-- ================= Tab Background =================
 local TabBackground = Instance.new("Frame")
-TabBackground.Size = UDim2.new(0, tabWidth + tabPadding*2, 1, -50)
-TabBackground.Position = UDim2.new(0, 10, 0, 50)
-TabBackground.BackgroundColor3 = Color3.fromRGB(45,45,45)
+TabBackground.Name = "TabBackground"
+TabBackground.Size = UDim2.new(0, 120, 1, -60)  
+TabBackground.Position = UDim2.new(0, 10, 0, 50 + 5)  
+TabBackground.BackgroundColor3 = Color3.fromRGB(45, 45, 45)  
 TabBackground.BorderSizePixel = 0
 TabBackground.Parent = MainFrame
 
 local UICornerTabBg = Instance.new("UICorner")
-UICornerTabBg.CornerRadius = UDim.new(0,12)
+UICornerTabBg.CornerRadius = UDim.new(0, 12)
 UICornerTabBg.Parent = TabBackground
 
--- Tabs container sopra il retro
+-- ================= Tabs Container =================
 local TabsContainer = Instance.new("Frame")
-TabsContainer.Size = UDim2.new(1, -20, 1, -60)
-TabsContainer.Position = UDim2.new(0, tabPadding + 10, 0, 50 + tabPadding)
+TabsContainer.Name = "TabsContainer"
+TabsContainer.Size = UDim2.new(0, 120, 1, -60)
+TabsContainer.Position = UDim2.new(0, 10, 0, 50 + 5)
 TabsContainer.BackgroundTransparency = 1
 TabsContainer.Parent = MainFrame
 
--- ================= Tabs =================
 library.Tabs = {}
-local tabNames = {"💎Credits","🗒Script1","🗒Script2","💻Hub","⚙Options","❌Close","Extra1","Extra2","Extra3","Extra4"}
+local tabNames = {}
 local tabButtons = {}
 local ContentFrames = {}
 
-for i, name in ipairs(tabNames) do
+function library:CreateTab(tabName)
+    local index = #tabNames + 1
+    tabNames[index] = tabName
+
+    -- Button
     local btn = Instance.new("TextButton")
-    btn.Text = name
-    btn.Size = UDim2.new(0, tabWidth, 0, tabHeight)
-    btn.Position = UDim2.new(0, 0, 0, (i-1)*(tabHeight + tabSpacing))
+    btn.Text = tabName
+    btn.Size = UDim2.new(0, 100, 0, 35)
+    btn.Position = UDim2.new(0, 10, 0, 10 + (index-1)*(35+8))
     btn.BackgroundColor3 = Color3.fromRGB(60,60,60)
     btn.TextColor3 = Color3.fromRGB(255,255,255)
     btn.Font = Enum.Font.FredokaOne
@@ -140,15 +140,15 @@ for i, name in ipairs(tabNames) do
     btn.Parent = TabsContainer
 
     local UICornerBtn = Instance.new("UICorner")
-    UICornerBtn.CornerRadius = UDim.new(0,8)
+    UICornerBtn.CornerRadius = UDim.new(0,10)
     UICornerBtn.Parent = btn
 
-    tabButtons[i] = btn
+    tabButtons[index] = btn
 
-    -- Frame contenuto per la tab
+    -- Content Frame
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, -tabWidth - tabPadding*3, 1, -50)
-    frame.Position = UDim2.new(0, tabWidth + tabPadding*2 + 10, 0, 50)
+    frame.Size = UDim2.new(1, -140, 1, -60)
+    frame.Position = UDim2.new(0, 130, 0, 50 + 5)
     frame.BackgroundColor3 = Color3.fromRGB(38,38,38)
     frame.Visible = false
     frame.Parent = MainFrame
@@ -164,17 +164,67 @@ for i, name in ipairs(tabNames) do
     scroll.ScrollBarThickness = 0
     scroll.Parent = frame
 
-    ContentFrames[i] = {Frame = frame, Scroll = scroll}
+    ContentFrames[index] = {Frame = frame, Scroll = scroll}
 
+    -- Button click
     btn.MouseButton1Click:Connect(function()
         for j, c in pairs(ContentFrames) do
-            c.Frame.Visible = (j == i)
+            c.Frame.Visible = (j == index)
         end
     end)
-end
 
-if #ContentFrames > 0 then
-    ContentFrames[1].Frame.Visible = true
+    return {
+        CreateButton = function(self, text, callback)
+            local button = Instance.new("TextButton")
+            button.Text = text
+            button.Size = UDim2.new(1, -20, 0, 35)
+            button.Position = UDim2.new(0,10,0,#scroll:GetChildren()*40)
+            button.BackgroundColor3 = Color3.fromRGB(60,60,60)
+            button.TextColor3 = Color3.fromRGB(255,255,255)
+            button.Font = Enum.Font.FredokaOne
+            button.TextScaled = true
+            button.Parent = scroll
+
+            local corner = Instance.new("UICorner")
+            corner.CornerRadius = UDim.new(0,10)
+            corner.Parent = button
+
+            button.MouseButton1Click:Connect(callback)
+            return button
+        end,
+        CreateDivider = function(self, text)
+            local label = Instance.new("TextLabel")
+            label.Size = UDim2.new(1, -20, 0, 25)
+            label.Position = UDim2.new(0,10,0,#scroll:GetChildren()*30)
+            label.BackgroundTransparency = 1
+            label.Text = text
+            label.TextColor3 = Color3.fromRGB(200,200,200)
+            label.Font = Enum.Font.FredokaOne
+            label.TextScaled = true
+            label.Parent = scroll
+            return label
+        end,
+        CreateTextbox = function(self, placeholder, callback)
+            local box = Instance.new("TextBox")
+            box.Size = UDim2.new(1,-20,0,35)
+            box.Position = UDim2.new(0,10,0,#scroll:GetChildren()*40)
+            box.PlaceholderText = placeholder
+            box.BackgroundColor3 = Color3.fromRGB(60,60,60)
+            box.TextColor3 = Color3.fromRGB(255,255,255)
+            box.Font = Enum.Font.FredokaOne
+            box.TextScaled = true
+            box.Parent = scroll
+
+            local corner = Instance.new("UICorner")
+            corner.CornerRadius = UDim.new(0,10)
+            corner.Parent = box
+
+            box.FocusLost:Connect(function()
+                callback(box.Text)
+            end)
+            return box
+        end
+    }
 end
 
 -- ================= Drag con effetto smooth =================
@@ -224,64 +274,5 @@ RunService.RenderStepped:Connect(function(delta)
         velocity = velocity * 0.85
     end
 end)
-
--- ================= Funzioni per creare contenuto =================
-function library:GetTab(index)
-    return {
-        CreateButton = function(self, text, callback)
-            local scroll = ContentFrames[index].Scroll
-            local button = Instance.new("TextButton")
-            button.Text = text
-            button.Size = UDim2.new(1, -20, 0, 35)
-            button.Position = UDim2.new(0,10,0,#scroll:GetChildren()*40)
-            button.BackgroundColor3 = Color3.fromRGB(60,60,60)
-            button.TextColor3 = Color3.fromRGB(255,255,255)
-            button.Font = Enum.Font.FredokaOne
-            button.TextScaled = true
-            button.Parent = scroll
-
-            local corner = Instance.new("UICorner")
-            corner.CornerRadius = UDim.new(0,10)
-            corner.Parent = button
-
-            button.MouseButton1Click:Connect(callback)
-            return button
-        end,
-        CreateDivider = function(self, text)
-            local scroll = ContentFrames[index].Scroll
-            local label = Instance.new("TextLabel")
-            label.Size = UDim2.new(1, -20, 0, 25)
-            label.Position = UDim2.new(0,10,0,#scroll:GetChildren()*30)
-            label.BackgroundTransparency = 1
-            label.Text = text
-            label.TextColor3 = Color3.fromRGB(200,200,200)
-            label.Font = Enum.Font.FredokaOne
-            label.TextScaled = true
-            label.Parent = scroll
-            return label
-        end,
-        CreateTextbox = function(self, placeholder, callback)
-            local scroll = ContentFrames[index].Scroll
-            local box = Instance.new("TextBox")
-            box.Size = UDim2.new(1,-20,0,35)
-            box.Position = UDim2.new(0,10,0,#scroll:GetChildren()*40)
-            box.PlaceholderText = placeholder
-            box.BackgroundColor3 = Color3.fromRGB(60,60,60)
-            box.TextColor3 = Color3.fromRGB(255,255,255)
-            box.Font = Enum.Font.FredokaOne
-            box.TextScaled = true
-            box.Parent = scroll
-
-            local corner = Instance.new("UICorner")
-            corner.CornerRadius = UDim.new(0,10)
-            corner.Parent = box
-
-            box.FocusLost:Connect(function()
-                callback(box.Text)
-            end)
-            return box
-        end
-    }
-end
 
 return library
