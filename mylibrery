@@ -1,254 +1,259 @@
--- NovaHub_UI (ModuleScript)
--- Style: Pixel-accurate, Fredoka One, rounded, symmetric, inertia drag
--- Exposes: CreateWindow -> Window:CreateTab -> Tab:Button/Divider/Label/TextBox/Slider/Toggle/Dropdown/ColorPicker
--- Also: ShowNotification, EnableResize
-
-local NovaHub = {}
-NovaHub.__index = NovaHub
-
--- Services
+-- Nova Hub GUI Library
+local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
 
--- Constants / defaults
-local FONT = Enum.Font.FredokaOne
-local DEFAULT_THEME = {
-    Background = Color3.fromRGB(28,28,28),
-    Topbar = Color3.fromRGB(36,36,36),
-    Panel = Color3.fromRGB(32,32,32),
-    Tab = Color3.fromRGB(48,48,48),
-    Button = Color3.fromRGB(72,72,72),
-    Accent = Color3.fromRGB(92,160,255),
-    Text = Color3.fromRGB(245,245,245),
-    Divider = Color3.fromRGB(115,115,115),
-    Input = Color3.fromRGB(56,56,56)
-}
+local library = {}
 
--- Helper functions
-local function new(class, props)
-    local inst = Instance.new(class)
-    if props then
-        for k,v in pairs(props) do
-            if k == "Parent" then
-                inst.Parent = v
-            else
-                pcall(function() inst[k] = v end)
-            end
-        end
-    end
-    return inst
-end
+-- ================= GUI Container =================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "NovaHubGui"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = PlayerGui
 
-local function tween(instance, props, time, style, dir)
-    style = style or Enum.EasingStyle.Quart
-    dir = dir or Enum.EasingDirection.Out
-    TweenService:Create(instance, TweenInfo.new(time or 0.18, style, dir), props):Play()
-end
+-- ================= Splash Screen =================
+local Splash = Instance.new("Frame")
+Splash.Size = UDim2.new(0, 300, 0, 150)
+Splash.Position = UDim2.new(0.5, 0, 0.5, 0)
+Splash.AnchorPoint = Vector2.new(0.5, 0.5)
+Splash.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Splash.BackgroundTransparency = 1
+Splash.BorderSizePixel = 0
+Splash.Parent = ScreenGui
 
-local function safeHttpGet(url)
-    local ok, res = pcall(function() return game:HttpGet(url, true) end)
-    if ok then return res end
-    return nil, res
-end
+local UICornerSplash = Instance.new("UICorner")
+UICornerSplash.CornerRadius = UDim.new(0, 20)
+UICornerSplash.Parent = Splash
 
--- Inertia drag
-local function makeInertiaDraggable(dragHandle, window)
-    local dragging = false
-    local dragStart = Vector2.new()
-    local startPos = window.Position
-    local velocity = Vector2.new()
-    local lastPos = Vector2.new()
-    local friction = 0.85
+local SplashText = Instance.new("TextLabel")
+SplashText.Size = UDim2.new(1, 0, 1, 0)
+SplashText.BackgroundTransparency = 1
+SplashText.Text = "Nova Hub"
+SplashText.TextColor3 = Color3.fromRGB(255, 255, 255)
+SplashText.Font = Enum.Font.FredokaOne
+SplashText.TextScaled = true
+SplashText.Parent = Splash
 
-    local function onInputBegan(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = window.Position
-            lastPos = input.Position
-            velocity = Vector2.new(0,0)
-        end
-    end
-    local function onInputChanged(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            if dragging then
-                local delta = input.Position - dragStart
-                window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
-                                            startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-                velocity = input.Position - lastPos
-                lastPos = input.Position
-            end
-        end
-    end
-    local function onInputEnded(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end
+-- Fade-in/out splash
+local tweenIn = TweenService:Create(Splash, TweenInfo.new(0.8, Enum.EasingStyle.Quad), {BackgroundTransparency = 0})
+tweenIn:Play()
+tweenIn.Completed:Wait()
+wait(1.5)
+local tweenOut = TweenService:Create(Splash, TweenInfo.new(0.8, Enum.EasingStyle.Quad), {BackgroundTransparency = 1})
+tweenOut:Play()
+tweenOut.Completed:Wait()
+Splash:Destroy()
 
-    dragHandle.InputBegan:Connect(onInputBegan)
-    dragHandle.InputChanged:Connect(onInputChanged)
-    dragHandle.InputEnded:Connect(onInputEnded)
-    UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            onInputChanged(input)
+-- ================= Main Frame =================
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 600, 0, 400)
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+MainFrame.ClipsDescendants = true
+
+local UICornerMain = Instance.new("UICorner")
+UICornerMain.CornerRadius = UDim.new(0, 15)
+UICornerMain.Parent = MainFrame
+
+-- ================= Top Bar =================
+local TopBar = Instance.new("Frame")
+TopBar.Size = UDim2.new(1, 0, 0, 50)
+TopBar.Position = UDim2.new(0, 0, 0, 0)
+TopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+TopBar.Parent = MainFrame
+
+local UICornerTop = Instance.new("UICorner")
+UICornerTop.CornerRadius = UDim.new(0, 15)
+UICornerTop.Parent = TopBar
+
+local Title = Instance.new("TextLabel")
+Title.Text = "Nova Hub"
+Title.Size = UDim2.new(0.5, 0, 1, 0)
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.BackgroundTransparency = 1
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.FredokaOne
+Title.TextScaled = true
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TopBar
+
+local CloseButton = Instance.new("TextButton")
+CloseButton.Text = "X"
+CloseButton.Size = UDim2.new(0, 40, 0, 40)
+CloseButton.Position = UDim2.new(1, -50, 0, 5)
+CloseButton.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.Font = Enum.Font.FredokaOne
+CloseButton.TextScaled = true
+CloseButton.Parent = TopBar
+
+local UICornerClose = Instance.new("UICorner")
+UICornerClose.CornerRadius = UDim.new(0, 10)
+UICornerClose.Parent = CloseButton
+
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- ================= Tabs (vertical) =================
+library.Tabs = {}
+local TabsContainer = Instance.new("Frame")
+TabsContainer.Size = UDim2.new(0, 120, 1, -50)
+TabsContainer.Position = UDim2.new(0, 0, 0, 50)
+TabsContainer.BackgroundTransparency = 1
+TabsContainer.Parent = MainFrame
+
+local tabNames = {}
+local tabButtons = {}
+local ContentFrames = {}
+
+function library:CreateTab(tabName)
+    local index = #tabNames + 1
+    tabNames[index] = tabName
+
+    -- Button
+    local btn = Instance.new("TextButton")
+    btn.Text = tabName
+    btn.Size = UDim2.new(0, 100, 0, 35)
+    btn.Position = UDim2.new(0, 10, 0, 10 + (index-1)*(35+10))
+    btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.Font = Enum.Font.FredokaOne
+    btn.TextScaled = true
+    btn.Parent = TabsContainer
+
+    local UICornerBtn = Instance.new("UICorner")
+    UICornerBtn.CornerRadius = UDim.new(0,10)
+    UICornerBtn.Parent = btn
+
+    tabButtons[index] = btn
+
+    -- Content Frame
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, -120, 1, -50)
+    frame.Position = UDim2.new(0, 120, 0, 50)
+    frame.BackgroundColor3 = Color3.fromRGB(35,35,35)
+    frame.Visible = false
+    frame.Parent = MainFrame
+
+    local UICornerFrame = Instance.new("UICorner")
+    UICornerFrame.CornerRadius = UDim.new(0,10)
+    UICornerFrame.Parent = frame
+
+    local scroll = Instance.new("ScrollingFrame")
+    scroll.Size = UDim2.new(1, -20, 1, -20)
+    scroll.Position = UDim2.new(0,10,0,10)
+    scroll.BackgroundTransparency = 1
+    scroll.ScrollBarThickness = 0
+    scroll.Parent = frame
+
+    ContentFrames[index] = {Frame = frame, Scroll = scroll}
+
+    -- Button click
+    btn.MouseButton1Click:Connect(function()
+        for j, c in pairs(ContentFrames) do
+            c.Frame.Visible = (j == index)
         end
     end)
 
-    RunService.Heartbeat:Connect(function(dt)
-        if not dragging then
-            if math.abs(velocity.X) > 0.5 or math.abs(velocity.Y) > 0.5 then
-                window.Position = window.Position + UDim2.fromOffset(velocity.X, velocity.Y)
-                velocity = velocity * friction
-            end
-        end
-    end)
-end
+    return {
+        CreateButton = function(self, text, callback)
+            local button = Instance.new("TextButton")
+            button.Text = text
+            button.Size = UDim2.new(1, -20, 0, 35)
+            button.Position = UDim2.new(0,10,0,#scroll:GetChildren()*40)
+            button.BackgroundColor3 = Color3.fromRGB(60,60,60)
+            button.TextColor3 = Color3.fromRGB(255,255,255)
+            button.Font = Enum.Font.FredokaOne
+            button.TextScaled = true
+            button.Parent = scroll
 
--- Resize
-local function enableResizeGrip(window, minSize)
-    minSize = minSize or Vector2.new(350,220)
-    local grip = new("Frame", {Parent = window, Size = UDim2.new(0,14,0,14), Position = UDim2.new(1,-18,1,-18), BackgroundTransparency = 1})
-    local dragging = false
-    local dragStart = Vector2.new()
-    local startSize = Vector2.new()
-    grip.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startSize = window.AbsoluteSize
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            local corner = Instance.new("UICorner")
+            corner.CornerRadius = UDim.new(0,10)
+            corner.Parent = button
+
+            button.MouseButton1Click:Connect(callback)
+            return button
+        end,
+
+        CreateDivider = function(self, text)
+            local label = Instance.new("TextLabel")
+            label.Size = UDim2.new(1, -20, 0, 25)
+            label.Position = UDim2.new(0,10,0,#scroll:GetChildren()*30)
+            label.BackgroundTransparency = 1
+            label.Text = text
+            label.TextColor3 = Color3.fromRGB(200,200,200)
+            label.Font = Enum.Font.FredokaOne
+            label.TextScaled = true
+            label.Parent = scroll
+            return label
+        end,
+
+        CreateTextbox = function(self, placeholder, callback)
+            local box = Instance.new("TextBox")
+            box.Size = UDim2.new(1,-20,0,35)
+            box.Position = UDim2.new(0,10,0,#scroll:GetChildren()*40)
+            box.PlaceholderText = placeholder
+            box.BackgroundColor3 = Color3.fromRGB(60,60,60)
+            box.TextColor3 = Color3.fromRGB(255,255,255)
+            box.Font = Enum.Font.FredokaOne
+            box.TextScaled = true
+            box.Parent = scroll
+
+            local corner = Instance.new("UICorner")
+            corner.CornerRadius = UDim.new(0,10)
+            corner.Parent = box
+
+            box.FocusLost:Connect(function()
+                callback(box.Text)
             end)
+            return box
         end
-    end)
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - dragStart
-            local newW = math.max(minSize.X, startSize.X + delta.X)
-            local newH = math.max(minSize.Y, startSize.Y + delta.Y)
-            window.Size = UDim2.new(0,newW,0,newH)
-        end
-    end)
+    }
 end
 
--- Notification system
-local NotificationManager = {}
-NotificationManager.queue = {}
-NotificationManager.container = nil
+-- ================= Drag with inertia =================
+local dragging
+local dragInput
+local dragStart
+local startPos
 
-function NotificationManager:Init(parent)
-    if self.container then return end
-    local cont = new("Frame", {Parent = parent, Size = UDim2.new(0, 300, 0, 0), Position = UDim2.new(1,-320,0,16), BackgroundTransparency = 1})
-    self.container = cont
+local function update(input)
+    local delta = input.Position - dragStart
+    local newPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    MainFrame.Position = newPos
 end
 
-function NotificationManager:Show(title,text,timeSec)
-    timeSec = timeSec or 3.5
-    if not self.container then return end
-    local frame = new("Frame", {Parent = self.container, Size = UDim2.new(1,0,0,64), BackgroundColor3 = Color3.fromRGB(40,40,40)})
-    new("UICorner",{Parent=frame,CornerRadius=UDim.new(0,8)})
-    local titleLbl = new("TextLabel",{Parent=frame,Size=UDim2.new(1,-10,0,24),Position=UDim2.new(0,6,0,6),BackgroundTransparency=1,Text=title,Font=FONT,TextSize=16,TextColor3=DEFAULT_THEME.Text,TextXAlignment=Enum.TextXAlignment.Left})
-    local bodyLbl = new("TextLabel",{Parent=frame,Size=UDim2.new(1,-10,0,30),Position=UDim2.new(0,6,0,30),BackgroundTransparency=1,Text=text,Font=FONT,TextSize=14,TextColor3=DEFAULT_THEME.Text,TextXAlignment=Enum.TextXAlignment.Left})
-    frame.Position = UDim2.new(0,320,0,0)
-    tween(frame,{Position=UDim2.new(0,0,0,(#self.container:GetChildren()-1)*72)},0.28)
-    delay(timeSec,function()
-        tween(frame,{Position=UDim2.new(0,320,0,0)},0.25)
-        wait(0.25)
-        pcall(function() frame:Destroy() end)
-    end)
-end
+MainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
 
--- CreateWindow
-function NovaHub.CreateWindow(opts)
-    opts = opts or {}
-    local title = opts.Title or "Nova Hub"
-    local resizable = opts.Resizable ~= false
-
-    local screenGui = new("ScreenGui",{Parent=game:GetService("CoreGui"), ResetOnSpawn=false, Name="NovaHub_ScreenGui"})
-    local main = new("Frame",{Parent=screenGui, Size=UDim2.new(0,560,0,380), Position=UDim2.new(0.5,-280,0.5,-190), BackgroundColor3=DEFAULT_THEME.Background, BorderSizePixel=0, ClipsDescendants=true})
-    new("UICorner",{Parent=main, CornerRadius=UDim.new(0,14)})
-
-    -- topbar
-    local topbar = new("Frame",{Parent=main,Size=UDim2.new(1,0,0,46),BackgroundColor3=DEFAULT_THEME.Topbar, ClipsDescendants=true})
-    new("UICorner",{Parent=topbar, CornerRadius=UDim.new(0,14)})
-    local titleLbl = new("TextLabel",{Parent=topbar, Size=UDim2.new(1,-120,1,0), Position=UDim2.new(0,20,0,0), BackgroundTransparency=1, Text=title, Font=FONT, TextSize=20, TextColor3=DEFAULT_THEME.Text, TextXAlignment=Enum.TextXAlignment.Left})
-    local closeBtn = new("TextButton",{Parent=topbar, Size=UDim2.new(0,36,0,30), Position=UDim2.new(1,-56,0.5,-15), BackgroundColor3=Color3.fromRGB(190,55,55), Text="X", Font=FONT, TextSize=18, TextColor3=Color3.fromRGB(255,255,255)})
-    new("UICorner",{Parent=closeBtn, CornerRadius=UDim.new(0,8)})
-    closeBtn.MouseButton1Click:Connect(function() pcall(function() screenGui:Destroy() end) end)
-
-    -- tabs area
-    local tabsHolder = new("Frame",{Parent=main, Size=UDim2.new(0,128,1,-72), Position=UDim2.new(0,16,0,56), BackgroundColor3=DEFAULT_THEME.Panel})
-    new("UICorner",{Parent=tabsHolder, CornerRadius=UDim.new(0,12)})
-    local tabsScroll = new("ScrollingFrame",{Parent=tabsHolder, Size=UDim2.new(1,-8,1,-8), Position=UDim2.new(0,4,0,4), BackgroundTransparency=1, ScrollBarThickness=0})
-    local tabsLayout = new("UIListLayout",{Parent=tabsScroll, Padding=UDim.new(0,10), FillDirection=Enum.FillDirection.Vertical, HorizontalAlignment=Enum.HorizontalAlignment.Center})
-
-    local contentPanel = new("Frame",{Parent=main, Size=UDim2.new(1,-168,1,-72), Position=UDim2.new(0,152,0,56), BackgroundColor3=DEFAULT_THEME.Panel})
-    new("UICorner",{Parent=contentPanel, CornerRadius=UDim.new(0,12)})
-
-    NotificationManager:Init(main)
-
-    local Window = {}
-    Window._gui = screenGui
-    Window._main = main
-    Window._tabsHolder = tabsScroll
-    Window._tabsBtnParent = tabsScroll
-    Window._contentParent = contentPanel
-    Window._tabs = {}
-    Window._theme = DEFAULT_THEME
-
-    makeInertiaDraggable(topbar, main)
-    if resizable then enableResizeGrip(main) end
-
-    -- API: CreateTab
-    function Window:CreateTab(name)
-        local btn = new("TextButton",{Parent=self._tabsBtnParent, Size=UDim2.new(1,-10,0,36), BackgroundColor3=self._theme.Tab, Text="  "..name, Font=FONT, TextSize=15, TextColor3=self._theme.Text, AutoButtonColor=false})
-        new("UICorner",{Parent=btn, CornerRadius=UDim.new(0,8)})
-
-        btn.LayoutOrder = #self._tabs + 1
-
-        local page = new("ScrollingFrame",{Parent=self._contentParent, Size=UDim2.new(1,-12,1,-12), Position=UDim2.new(0,6,0,6), BackgroundTransparency=1, ScrollBarThickness=0, Visible=false})
-        local pageLayout = new("UIListLayout",{Parent=page, Padding=UDim.new(0,10), SortOrder=Enum.SortOrder.LayoutOrder})
-        pageLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            page.CanvasSize = UDim2.new(0,0,pageLayout.AbsoluteContentSize.Y+12)
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
         end)
-        if #self._tabs == 0 then page.Visible = true end
-        btn.MouseButton1Click:Connect(function()
-            for _, t in ipairs(self._tabs) do t.page.Visible = false end
-            page.Visible = true
-        end)
-
-        btn.MouseEnter:Connect(function() tween(btn,{BackgroundColor3=Color3.fromRGB(62,62,62)},0.12) end)
-        btn.MouseLeave:Connect(function() tween(btn,{BackgroundColor3=self._theme.Tab},0.12) end)
-
-        local TabAPI = {}
-
-        -- Add Label, Button, Divider, TextBox, Slider, Toggle, Dropdown, ColorPicker here exactly like before
-        -- (puoi copiare le funzioni dal codice NexaUI_A precedente)
-
-        local tabObj = {page=page, btn=btn, api=TabAPI}
-        table.insert(self._tabs, tabObj)
-        return TabAPI
     end
+end)
 
-    function Window:ShowNotification(title,text,timeSec)
-        NotificationManager:Init(main)
-        NotificationManager:Show(title,text,timeSec)
+MainFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
     end
+end)
 
-    function Window:SetTheme(theme)
-        for k,v in pairs(theme or {}) do
-            self._theme[k] = v
-        end
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
     end
+end)
 
-    function Window:Destroy()
-        pcall(function() screenGui:Destroy() end)
-    end
-
-    return Window
-end
-
-return NovaHub
+-- ================= Return library =================
+return library
