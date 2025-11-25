@@ -5,7 +5,9 @@ local UserInputService = game:GetService("UserInputService")
 local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
 
--- GUI Container
+local library = {}
+
+-- ================= GUI Container =================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "NovaHubGui"
 ScreenGui.ResetOnSpawn = false
@@ -21,12 +23,10 @@ Splash.BackgroundTransparency = 1
 Splash.BorderSizePixel = 0
 Splash.Parent = ScreenGui
 
--- Rounded corners
 local UICornerSplash = Instance.new("UICorner")
 UICornerSplash.CornerRadius = UDim.new(0, 20)
 UICornerSplash.Parent = Splash
 
--- Text
 local SplashText = Instance.new("TextLabel")
 SplashText.Size = UDim2.new(1, 0, 1, 0)
 SplashText.BackgroundTransparency = 1
@@ -36,22 +36,17 @@ SplashText.Font = Enum.Font.FredokaOne
 SplashText.TextScaled = true
 SplashText.Parent = Splash
 
--- Fade-in
+-- Fade-in/out splash
 local tweenIn = TweenService:Create(Splash, TweenInfo.new(0.8, Enum.EasingStyle.Quad), {BackgroundTransparency = 0})
 tweenIn:Play()
 tweenIn.Completed:Wait()
-
--- Hold
 wait(1.5)
-
--- Fade-out
 local tweenOut = TweenService:Create(Splash, TweenInfo.new(0.8, Enum.EasingStyle.Quad), {BackgroundTransparency = 1})
 tweenOut:Play()
 tweenOut.Completed:Wait()
-
 Splash:Destroy()
 
--- ================= Main GUI =================
+-- ================= Main Frame =================
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 600, 0, 400)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -61,7 +56,6 @@ MainFrame.BorderSizePixel = 0
 MainFrame.Parent = ScreenGui
 MainFrame.ClipsDescendants = true
 
--- Rounded corners
 local UICornerMain = Instance.new("UICorner")
 UICornerMain.CornerRadius = UDim.new(0, 15)
 UICornerMain.Parent = MainFrame
@@ -106,68 +100,121 @@ CloseButton.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
--- ================= Tabs =================
+-- ================= Tabs (vertical) =================
+library.Tabs = {}
 local TabsContainer = Instance.new("Frame")
-TabsContainer.Size = UDim2.new(1, 0, 0, 50)
+TabsContainer.Size = UDim2.new(0, 120, 1, -50)
 TabsContainer.Position = UDim2.new(0, 0, 0, 50)
 TabsContainer.BackgroundTransparency = 1
 TabsContainer.Parent = MainFrame
 
-local tabNames = {"💎Credits", "🗒Script1", "🗒Script2", "💻Hub", "⚙Options", "❌Close", "Extra1", "Extra2", "Extra3", "Extra4"}
+local tabNames = {}
 local tabButtons = {}
+local ContentFrames = {}
 
-local spacing = (600 - (#tabNames * 50)) / (#tabNames + 1)
+function library:CreateTab(tabName)
+    local index = #tabNames + 1
+    tabNames[index] = tabName
 
-for i, name in ipairs(tabNames) do
+    -- Button
     local btn = Instance.new("TextButton")
-    btn.Text = name
-    btn.Size = UDim2.new(0, 50, 1, -10)
-    btn.Position = UDim2.new(0, spacing * i + 50 * (i-1), 0, 5)
-    btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Text = tabName
+    btn.Size = UDim2.new(0, 100, 0, 35)
+    btn.Position = UDim2.new(0, 10, 0, 10 + (index-1)*(35+10))
+    btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
     btn.Font = Enum.Font.FredokaOne
     btn.TextScaled = true
     btn.Parent = TabsContainer
 
     local UICornerBtn = Instance.new("UICorner")
-    UICornerBtn.CornerRadius = UDim.new(0, 10)
+    UICornerBtn.CornerRadius = UDim.new(0,10)
     UICornerBtn.Parent = btn
 
-    tabButtons[i] = btn
-end
+    tabButtons[index] = btn
 
--- ================= Content Frames =================
-local ContentFrames = {}
-
-for i = 1, #tabNames do
+    -- Content Frame
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, 0, 1, -100)
-    frame.Position = UDim2.new(0, 0, 0, 100)
-    frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    frame.Size = UDim2.new(1, -120, 1, -50)
+    frame.Position = UDim2.new(0, 120, 0, 50)
+    frame.BackgroundColor3 = Color3.fromRGB(35,35,35)
     frame.Visible = false
     frame.Parent = MainFrame
 
     local UICornerFrame = Instance.new("UICorner")
-    UICornerFrame.CornerRadius = UDim.new(0, 10)
+    UICornerFrame.CornerRadius = UDim.new(0,10)
     UICornerFrame.Parent = frame
 
     local scroll = Instance.new("ScrollingFrame")
     scroll.Size = UDim2.new(1, -20, 1, -20)
-    scroll.Position = UDim2.new(0, 10, 0, 10)
+    scroll.Position = UDim2.new(0,10,0,10)
     scroll.BackgroundTransparency = 1
     scroll.ScrollBarThickness = 0
     scroll.Parent = frame
 
-    ContentFrames[i] = frame
-end
+    ContentFrames[index] = {Frame = frame, Scroll = scroll}
 
--- Tab switching
-for i, btn in ipairs(tabButtons) do
+    -- Button click
     btn.MouseButton1Click:Connect(function()
-        for j, frame in ipairs(ContentFrames) do
-            frame.Visible = (i == j)
+        for j, c in pairs(ContentFrames) do
+            c.Frame.Visible = (j == index)
         end
     end)
+
+    return {
+        CreateButton = function(self, text, callback)
+            local button = Instance.new("TextButton")
+            button.Text = text
+            button.Size = UDim2.new(1, -20, 0, 35)
+            button.Position = UDim2.new(0,10,0,#scroll:GetChildren()*40)
+            button.BackgroundColor3 = Color3.fromRGB(60,60,60)
+            button.TextColor3 = Color3.fromRGB(255,255,255)
+            button.Font = Enum.Font.FredokaOne
+            button.TextScaled = true
+            button.Parent = scroll
+
+            local corner = Instance.new("UICorner")
+            corner.CornerRadius = UDim.new(0,10)
+            corner.Parent = button
+
+            button.MouseButton1Click:Connect(callback)
+            return button
+        end,
+
+        CreateDivider = function(self, text)
+            local label = Instance.new("TextLabel")
+            label.Size = UDim2.new(1, -20, 0, 25)
+            label.Position = UDim2.new(0,10,0,#scroll:GetChildren()*30)
+            label.BackgroundTransparency = 1
+            label.Text = text
+            label.TextColor3 = Color3.fromRGB(200,200,200)
+            label.Font = Enum.Font.FredokaOne
+            label.TextScaled = true
+            label.Parent = scroll
+            return label
+        end,
+
+        CreateTextbox = function(self, placeholder, callback)
+            local box = Instance.new("TextBox")
+            box.Size = UDim2.new(1,-20,0,35)
+            box.Position = UDim2.new(0,10,0,#scroll:GetChildren()*40)
+            box.PlaceholderText = placeholder
+            box.BackgroundColor3 = Color3.fromRGB(60,60,60)
+            box.TextColor3 = Color3.fromRGB(255,255,255)
+            box.Font = Enum.Font.FredokaOne
+            box.TextScaled = true
+            box.Parent = scroll
+
+            local corner = Instance.new("UICorner")
+            corner.CornerRadius = UDim.new(0,10)
+            corner.Parent = box
+
+            box.FocusLost:Connect(function()
+                callback(box.Text)
+            end)
+            return box
+        end
+    }
 end
 
 -- ================= Drag with inertia =================
@@ -208,5 +255,5 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- ================= Initialize first tab =================
-ContentFrames[1].Visible = true
+-- ================= Return library =================
+return library
