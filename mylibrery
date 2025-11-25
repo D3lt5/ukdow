@@ -1,6 +1,7 @@
--- Nova Hub GUI Splash
+-- Nova Hub GUI Library
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
 
@@ -10,7 +11,7 @@ ScreenGui.Name = "NovaHubGui"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
 
--- Splash Frame
+-- ================= Splash Screen =================
 local Splash = Instance.new("Frame")
 Splash.Size = UDim2.new(0, 300, 0, 150)
 Splash.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -21,11 +22,11 @@ Splash.BorderSizePixel = 0
 Splash.Parent = ScreenGui
 
 -- Rounded corners
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 20)
-UICorner.Parent = Splash
+local UICornerSplash = Instance.new("UICorner")
+UICornerSplash.CornerRadius = UDim.new(0, 20)
+UICornerSplash.Parent = Splash
 
--- Nova Hub Text
+-- Text
 local SplashText = Instance.new("TextLabel")
 SplashText.Size = UDim2.new(1, 0, 1, 0)
 SplashText.BackgroundTransparency = 1
@@ -40,7 +41,7 @@ local tweenIn = TweenService:Create(Splash, TweenInfo.new(0.8, Enum.EasingStyle.
 tweenIn:Play()
 tweenIn.Completed:Wait()
 
--- Hold for 1.5 seconds
+-- Hold
 wait(1.5)
 
 -- Fade-out
@@ -50,13 +51,13 @@ tweenOut.Completed:Wait()
 
 Splash:Destroy()
 
--- Main GUI Frame
+-- ================= Main GUI =================
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 600, 0, 400)
-MainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 MainFrame.BorderSizePixel = 0
-MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 MainFrame.Parent = ScreenGui
 MainFrame.ClipsDescendants = true
 
@@ -65,7 +66,7 @@ local UICornerMain = Instance.new("UICorner")
 UICornerMain.CornerRadius = UDim.new(0, 15)
 UICornerMain.Parent = MainFrame
 
--- Top Bar
+-- ================= Top Bar =================
 local TopBar = Instance.new("Frame")
 TopBar.Size = UDim2.new(1, 0, 0, 50)
 TopBar.Position = UDim2.new(0, 0, 0, 0)
@@ -87,7 +88,6 @@ Title.TextScaled = true
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = TopBar
 
--- Close Button
 local CloseButton = Instance.new("TextButton")
 CloseButton.Text = "X"
 CloseButton.Size = UDim2.new(0, 40, 0, 40)
@@ -98,30 +98,31 @@ CloseButton.Font = Enum.Font.FredokaOne
 CloseButton.TextScaled = true
 CloseButton.Parent = TopBar
 
-CloseButton.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-end)
-
 local UICornerClose = Instance.new("UICorner")
 UICornerClose.CornerRadius = UDim.new(0, 10)
 UICornerClose.Parent = CloseButton
 
--- Tabs container
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- ================= Tabs =================
 local TabsContainer = Instance.new("Frame")
 TabsContainer.Size = UDim2.new(1, 0, 0, 50)
 TabsContainer.Position = UDim2.new(0, 0, 0, 50)
 TabsContainer.BackgroundTransparency = 1
 TabsContainer.Parent = MainFrame
 
--- Example: 10 tabs evenly spaced
 local tabNames = {"💎Credits", "🗒Script1", "🗒Script2", "💻Hub", "⚙Options", "❌Close", "Extra1", "Extra2", "Extra3", "Extra4"}
 local tabButtons = {}
+
+local spacing = (600 - (#tabNames * 50)) / (#tabNames + 1)
 
 for i, name in ipairs(tabNames) do
     local btn = Instance.new("TextButton")
     btn.Text = name
     btn.Size = UDim2.new(0, 50, 1, -10)
-    btn.Position = UDim2.new(0, 10 + (i-1)*55, 0, 5)
+    btn.Position = UDim2.new(0, spacing * i + 50 * (i-1), 0, 5)
     btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.FredokaOne
@@ -135,7 +136,7 @@ for i, name in ipairs(tabNames) do
     tabButtons[i] = btn
 end
 
--- Example: Content Frames for Tabs (scrollable)
+-- ================= Content Frames =================
 local ContentFrames = {}
 
 for i = 1, #tabNames do
@@ -169,7 +170,7 @@ for i, btn in ipairs(tabButtons) do
     end)
 end
 
--- Drag with inertia
+-- ================= Drag with inertia =================
 local dragging
 local dragInput
 local dragStart
@@ -201,8 +202,11 @@ MainFrame.InputChanged:Connect(function(input)
     end
 end)
 
-game:GetService("UserInputService").InputChanged:Connect(function(input)
+UserInputService.InputChanged:Connect(function(input)
     if input == dragInput and dragging then
         update(input)
     end
 end)
+
+-- ================= Initialize first tab =================
+ContentFrames[1].Visible = true
