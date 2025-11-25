@@ -1,1 +1,238 @@
+-- UI FRAMEWORK BY CHATGPT —
+-- Modern Executor GUI with:
+-- Tabs, Buttons, Labels, Dividers, TextBox, Slider
+-- Smooth Drag, Scrollable Pages, Fredoka One Font
 
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local Library = {}
+
+---------------------------------------------------------------------
+-- Utility: Smooth Drag
+---------------------------------------------------------------------
+local function MakeDraggable(topbar, frame)
+    local dragging = false
+    local dragStart, startPos
+
+    topbar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+        end
+    end)
+
+    topbar.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            local goal = {}
+            goal.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                                      startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+
+            TweenService:Create(frame, TweenInfo.new(0.15, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), goal):Play()
+        end
+    end)
+end
+
+---------------------------------------------------------------------
+-- Main Window
+---------------------------------------------------------------------
+function Library.Window(titleText)
+    local Window = {}
+    
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "CustomExecutorUI"
+    ScreenGui.Parent = game.CoreGui
+
+    -- Main Frame
+    local Main = Instance.new("Frame")
+    Main.Size = UDim2.new(0, 550, 0, 360)
+    Main.Position = UDim2.new(0.5, -275, 0.5, -180)
+    Main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    Main.Parent = ScreenGui
+    
+    local UIC = Instance.new("UICorner", Main)
+    UIC.CornerRadius = UDim.new(0, 12)
+
+    -- Topbar
+    local TopBar = Instance.new("Frame")
+    TopBar.Size = UDim2.new(1, 0, 0, 42)
+    TopBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    TopBar.Parent = Main
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, -40, 1, 0)
+    Title.Position = UDim2.new(0, 12, 0, 0)
+    Title.BackgroundTransparency = 1
+    Title.Text = titleText
+    Title.Font = Enum.Font.FredokaOne
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.TextSize = 20
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Parent = TopBar
+
+    -- Close
+    local Close = Instance.new("TextButton")
+    Close.Size = UDim2.new(0, 32, 0, 32)
+    Close.Position = UDim2.new(1, -38, 0, 5)
+    Close.Text = "X"
+    Close.Font = Enum.Font.FredokaOne
+    Close.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Close.BackgroundColor3 = Color3.fromRGB(160, 50, 50)
+    Close.TextSize = 20
+    Close.Parent = TopBar
+
+    Instance.new("UICorner", Close).CornerRadius = UDim.new(0, 8)
+
+    Close.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
+    end)
+
+    MakeDraggable(TopBar, Main)
+
+    -- Tab Holder
+    local TabHolder = Instance.new("Frame")
+    TabHolder.Size = UDim2.new(0, 120, 1, -52)
+    TabHolder.Position = UDim2.new(0, 10, 0, 52)
+    TabHolder.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    TabHolder.Parent = Main
+    Instance.new("UICorner", TabHolder).CornerRadius = UDim.new(0, 12)
+
+    local TabList = Instance.new("UIListLayout", TabHolder)
+    TabList.Padding = UDim.new(0, 6)
+
+    -- Content Holder
+    local Content = Instance.new("Frame")
+    Content.Size = UDim2.new(1, -150, 1, -60)
+    Content.Position = UDim2.new(0, 140, 0, 52)
+    Content.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Content.Parent = Main
+    Instance.new("UICorner", Content).CornerRadius = UDim.new(0, 12)
+
+    local Tabs = {}
+
+    ---------------------------------------------------------------------
+    -- CreateTab
+    ---------------------------------------------------------------------
+    function Window.CreateTab(name)
+        local TabButton = Instance.new("TextButton")
+        TabButton.Size = UDim2.new(1, -10, 0, 38)
+        TabButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        TabButton.Text = name
+        TabButton.Font = Enum.Font.FredokaOne
+        TabButton.TextSize = 16
+        TabButton.TextColor3 = Color3.fromRGB(255,255,255)
+        TabButton.Parent = TabHolder
+
+        Instance.new("UICorner", TabButton).CornerRadius = UDim.new(0, 10)
+
+        -- Tab page
+        local Page = Instance.new("ScrollingFrame")
+        Page.Size = UDim2.new(1, 0, 1, 0)
+        Page.CanvasSize = UDim2.new(0, 0, 0, 0)
+        Page.ScrollBarThickness = 4
+        Page.Visible = false
+        Page.BackgroundTransparency = 1
+        Page.Parent = Content
+        
+        local PageList = Instance.new("UIListLayout", Page)
+        PageList.Padding = UDim.new(0, 8)
+        PageList.SortOrder = Enum.SortOrder.LayoutOrder
+
+        -- update canvas
+        PageList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            Page.CanvasSize = UDim2.new(0,0,0,PageList.AbsoluteContentSize.Y + 20)
+        end)
+
+        -----------------------------------------------------------------
+        -- Controls inside page
+        -----------------------------------------------------------------
+        local TabAPI = {}
+
+        function TabAPI.CreateButton(text, callback)
+            local Btn = Instance.new("TextButton")
+            Btn.Size = UDim2.new(1, -20, 0, 42)
+            Btn.Text = text
+            Btn.Font = Enum.Font.FredokaOne
+            Btn.TextSize = 18
+            Btn.TextColor3 = Color3.fromRGB(255,255,255)
+            Btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+            Btn.Parent = Page
+
+            Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 10)
+
+            Btn.MouseButton1Click:Connect(callback)
+        end
+
+        function TabAPI.CreateDivider(text)
+            local Div = Instance.new("TextLabel")
+            Div.Size = UDim2.new(1, -20, 0, 28)
+            Div.Text = text
+            Div.BackgroundTransparency = 1
+            Div.Font = Enum.Font.FredokaOne
+            Div.TextSize = 16
+            Div.TextXAlignment = Enum.TextXAlignment.Left
+            Div.TextColor3 = Color3.fromRGB(200,200,200)
+            Div.Parent = Page
+        end
+
+        function TabAPI.CreateLabel(text)
+            local Lab = Instance.new("TextLabel")
+            Lab.Size = UDim2.new(1, -20, 0, 22)
+            Lab.BackgroundTransparency = 1
+            Lab.Font = Enum.Font.FredokaOne
+            Lab.TextSize = 16
+            Lab.TextXAlignment = Enum.TextXAlignment.Left
+            Lab.Text = text
+            Lab.TextColor3 = Color3.fromRGB(255,255,255)
+            Lab.Parent = Page
+        end
+
+        function TabAPI.CreateTextBox(placeholder, callback)
+            local Box = Instance.new("TextBox")
+            Box.Size = UDim2.new(1, -20, 0, 38)
+            Box.PlaceholderText = placeholder
+            Box.Font = Enum.Font.FredokaOne
+            Box.TextSize = 16
+            Box.TextColor3 = Color3.fromRGB(255,255,255)
+            Box.BackgroundColor3 = Color3.fromRGB(50,50,50)
+            Box.Parent = Page
+
+            Instance.new("UICorner", Box).CornerRadius = UDim.new(0, 10)
+
+            Box.FocusLost:Connect(function()
+                callback(Box.Text)
+            end)
+        end
+
+        ---------------------------------------------------------------------
+        -- Tab switching behavior
+        ---------------------------------------------------------------------
+        TabButton.MouseButton1Click:Connect(function()
+            for _, tab in pairs(Tabs) do
+                tab.Page.Visible = false
+            end
+
+            Page.Visible = true
+        end)
+
+        Tabs[name] = { Page = Page, Button = TabButton }
+
+        if #Tabs == 1 then
+            Page.Visible = true
+        end
+
+        return TabAPI
+    end
+
+    return Window
+end
+
+return Library
