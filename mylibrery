@@ -1,151 +1,143 @@
--- GUI dark + rounded + close button + tabs
+--== GUI STYLE DARK MODE + ROUNDED + CLOSE BUTTON ==--
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "DarkExecutorHub"
 ScreenGui.Parent = game.CoreGui
+ScreenGui.Name = "DarkExecutorGUI"
 
--- Main window frame
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.Size = UDim2.new(0, 450, 0, 350)
-MainFrame.Position = UDim2.new(0.5, -225, 0.5, -175)
+MainFrame.Size = UDim2.new(0, 400, 0, 300)
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 MainFrame.BorderSizePixel = 0
 
--- Rounded corners for main window
-local mainCorner = Instance.new("UICorner")
-mainCorner.Parent = MainFrame
-mainCorner.CornerRadius = UDim.new(0, 8)  -- 8 px arrotondati
+-- Rounded border
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 10)
+MainCorner.Parent = MainFrame
 
--- Top bar (for title + close button)
+--== TOP BAR CON X DI CHIUSURA ==--
 local TopBar = Instance.new("Frame")
 TopBar.Parent = MainFrame
-TopBar.Size = UDim2.new(1, 0, 0, 30)
-TopBar.Position = UDim2.new(0, 0, 0, 0)
+TopBar.Size = UDim2.new(1, 0, 0, 32)
 TopBar.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 TopBar.BorderSizePixel = 0
 
--- Optional: UICorner for top bar, but only top corners
-local topCorner = Instance.new("UICorner")
-topCorner.Parent = TopBar
-topCorner.CornerRadius = UDim.new(0, 8)
+local TopCorner = Instance.new("UICorner")
+TopCorner.CornerRadius = UDim.new(0, 10)
+TopCorner.Parent = TopBar
 
--- Close button
-local closeBtn = Instance.new("TextButton")
-closeBtn.Parent = TopBar
-closeBtn.Size = UDim2.new(0, 25, 0, 25)
-closeBtn.Position = UDim2.new(1, -30, 0, 2)
-closeBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-closeBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-closeBtn.Text = "✕"
-closeBtn.Font = Enum.Font.GothamBold
-closeBtn.TextSize = 18
-closeBtn.AutoButtonColor = true
+-- Close button (X)
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Parent = TopBar
+CloseBtn.Size = UDim2.new(0, 25, 0, 25)
+CloseBtn.Position = UDim2.new(1, -30, 0, 3)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+CloseBtn.Text = "✕"
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 16
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 
-local closeCorner = Instance.new("UICorner")
-closeCorner.Parent = closeBtn
-closeCorner.CornerRadius = UDim.new(0, 6)
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 6)
+CloseCorner.Parent = CloseBtn
 
-closeBtn.MouseButton1Click:Connect(function()
+CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
--- Side tab frame
+--== TAB LATERALE (uguale a prima ma più bello) ==--
 local TabFrame = Instance.new("Frame")
 TabFrame.Parent = MainFrame
-TabFrame.Size = UDim2.new(0, 110, 1, -30)  -- lasciare spazio per top bar
-TabFrame.Position = UDim2.new(0, 0, 0, 30)
+TabFrame.Size = UDim2.new(0, 100, 1, -32)
+TabFrame.Position = UDim2.new(0, 0, 0, 32)
 TabFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 TabFrame.BorderSizePixel = 0
 
-local tabCorner = Instance.new("UICorner")
-tabCorner.Parent = TabFrame
-tabCorner.CornerRadius = UDim.new(0, 8)
+local TabCorner = Instance.new("UICorner")
+TabCorner.CornerRadius = UDim.new(0, 10)
+TabCorner.Parent = TabFrame
 
--- Content frame (per pulsanti e contenuti tab)
-local ContentFrame = Instance.new("Frame")
-ContentFrame.Parent = MainFrame
-ContentFrame.Size = UDim2.new(1, -110, 1, -30)
-ContentFrame.Position = UDim2.new(0, 110, 0, 30)
-ContentFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ContentFrame.BorderSizePixel = 0
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Parent = TabFrame
+UIListLayout.Padding = UDim.new(0,5)
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
-local contentCorner = Instance.new("UICorner")
-contentCorner.Parent = ContentFrame
-contentCorner.CornerRadius = UDim.new(0, 8)
-
--- Tab buttons
 local tabNames = {"Main", "ESP", "Auto", "Utility", "Shop"}
-local tabButtons = {}
 local selectedTab = "Main"
-
-local UIList = Instance.new("UIListLayout")
-UIList.Parent = TabFrame
-UIList.SortOrder = Enum.SortOrder.LayoutOrder
-UIList.Padding = UDim.new(0, 5)
+local TabButtons = {}
 
 for i, name in ipairs(tabNames) do
     local btn = Instance.new("TextButton")
     btn.Parent = TabFrame
     btn.Size = UDim2.new(1, -10, 0, 35)
-    btn.Position = UDim2.new(0, 5, 0, (i-1)*45 + 10)
-    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    btn.TextColor3 = Color3.new(1,1,1)
+    btn.BorderSizePixel = 0
     btn.Text = name
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = 16
-    btn.AutoButtonColor = true
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
 
-    local bcorner = Instance.new("UICorner")
-    bcorner.Parent = btn
-    bcorner.CornerRadius = UDim.new(0, 6)
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 8)
+    btnCorner.Parent = btn
 
     btn.MouseButton1Click:Connect(function()
         selectedTab = name
-        refreshTab()
+        updateTab()
     end)
 
-    tabButtons[name] = btn
+    TabButtons[name] = btn
 end
 
--- Funzione per pulire contenuti
+--== CONTENT FRAME (come prima, solo esteticamente migliorato) ==--
+local ContentFrame = Instance.new("Frame")
+ContentFrame.Parent = MainFrame
+ContentFrame.Size = UDim2.new(1, -100, 1, -32)
+ContentFrame.Position = UDim2.new(0, 100, 0, 32)
+ContentFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+ContentFrame.BorderSizePixel = 0
+
+local ContentCorner = Instance.new("UICorner")
+ContentCorner.CornerRadius = UDim.new(0, 10)
+ContentCorner.Parent = ContentFrame
+
 local function clearContent()
     for _, v in pairs(ContentFrame:GetChildren()) do
-        if v:IsA("TextButton") or v:IsA("Frame") then
+        if v:IsA("TextButton") then
             v:Destroy()
         end
     end
 end
 
--- Aggiorna la tab mostrata
-function refreshTab()
+function updateTab()
     clearContent()
+    
     if selectedTab == "Main" then
         local actions = {
-            {"God Mode", function() print("God Mode") end},
-            {"Speed Boost", function() print("Speed Boost") end},
-            {"Other Script", function() print("Other") end},
+            {"God Mode", function() print("God Mode Activated") end},
+            {"Activate Speed Boost", function() print("Speed Boost Activated") end},
+            {"Speed Boost v2", function() print("Speed Boost v2 Activated") end},
+            {"Collect Brainrot in base", function() print("Collected Brainrot") end},
         }
-        for i, act in ipairs(actions) do
-            local b = Instance.new("TextButton")
-            b.Parent = ContentFrame
-            b.Size = UDim2.new(1, -20, 0, 40)
-            b.Position = UDim2.new(0, 10, 0, (i-1)*50 + 10)
-            b.BackgroundColor3 = Color3.fromRGB(50,50,50)
-            b.TextColor3 = Color3.new(1,1,1)
-            b.Text = act[1]
-            b.Font = Enum.Font.GothamBold
-            b.TextSize = 16
-            b.AutoButtonColor = true
 
-            local bc = Instance.new("UICorner")
-            bc.Parent = b
-            bc.CornerRadius = UDim.new(0, 5)
+        for i, action in ipairs(actions) do
+            local btn = Instance.new("TextButton")
+            btn.Parent = ContentFrame
+            btn.Size = UDim2.new(1, -20, 0, 40)
+            btn.Position = UDim2.new(0, 10, 0, (i-1)*50 + 10)
+            btn.Text = action[1]
+            btn.Font = Enum.Font.GothamBold
+            btn.TextSize = 16
+            btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 
-            b.MouseButton1Click:Connect(act[2])
+            local btnCorner = Instance.new("UICorner")
+            btnCorner.CornerRadius = UDim.new(0, 8)
+            btnCorner.Parent = btn
+
+            btn.MouseButton1Click:Connect(action[2])
         end
     end
-    -- Aggiungi else if per altre tab come ESP, Auto, etc.
 end
 
--- Inizializza
-refreshTab()
+updateTab()
